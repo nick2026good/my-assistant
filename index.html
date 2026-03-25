@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>每日助理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#4F6EF7;--p-l:#EEF1FE;
+  --g:#1D9E75;--g-l:#E1F5EE;
+  --a:#BA7517;--a-l:#FAEEDA;
+  --r:#D85A30;--r-l:#FAECE7;
+  --pu:#534AB7;--pu-l:#EEEDFE;
+  --tx:#1a1a1a;--tx2:#666;--tx3:#999;
+  --bg:#F5F5F0;--card:#fff;
+  --bd:rgba(0,0,0,0.1);--bd2:rgba(0,0,0,0.2);
+}
+@media(prefers-color-scheme:dark){
+  :root{--tx:#f0f0f0;--tx2:#aaa;--tx3:#666;--bg:#1a1a1a;--card:#2a2a2a;--bd:rgba(255,255,255,0.1);--bd2:rgba(255,255,255,0.2)}
+}
+body{font-family:-apple-system,'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx)}
+.app{max-width:430px;margin:0 auto;background:var(--bg);min-height:100vh;padding-bottom:80px}
+
+.hdr{background:var(--card);border-bottom:0.5px solid var(--bd);padding:16px 16px 14px;position:sticky;top:0;z-index:20}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start}
+.greet{font-size:18px;font-weight:600;color:var(--tx)}
+.datetxt{font-size:12px;color:var(--tx2);margin-top:2px}
+.ava{width:36px;height:36px;border-radius:50%;background:var(--p-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--p)}
+.alert{margin-top:12px;background:#FAECE7;border-radius:10px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center}
+.al-l .al-t{font-size:12px;color:#993C1D;font-weight:600}
+.al-l .al-s{font-size:11px;color:#D85A30;margin-top:1px}
+.al-r .al-v{font-size:16px;font-weight:600;color:#D85A30;text-align:right}
+.al-r .al-l2{font-size:10px;color:#D85A30;text-align:right}
+
+.tabs{display:flex;background:var(--card);border-bottom:0.5px solid var(--bd);overflow-x:auto;padding:0 10px;position:sticky;top:88px;z-index:19}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:11px 12px;font-size:12px;font-weight:500;color:var(--tx2);cursor:pointer;white-space:nowrap;border:none;border-bottom:2px solid transparent;background:none;transition:all 0.15s;flex-shrink:0}
+.tab.on{color:var(--p);border-bottom-color:var(--p)}
+
+.sec{display:none;padding:14px}
+.sec.on{display:block}
+.stl{font-size:11px;font-weight:600;color:var(--tx2);letter-spacing:0.07em;margin-bottom:8px;text-transform:uppercase}
+.card{background:var(--card);border:0.5px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+
+/* CMD */
+.cmd-hero{background:var(--p);border-radius:14px;padding:16px;margin-bottom:12px;color:#fff}
+.cmd-date{font-size:11px;opacity:0.8;margin-bottom:4px}
+.cmd-title{font-size:15px;font-weight:600;margin-bottom:12px}
+.cs{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.cs:last-child{margin-bottom:0}
+.cs-n{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.cs-b{flex:1}
+.cs-name{font-size:13px;font-weight:600}
+.cs-desc{font-size:11px;opacity:0.75;margin-top:1px}
+.cs-chk{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.3);border:none;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:all 0.2s}
+.cs-chk.on{background:#fff;color:var(--p);font-weight:700}
+
+/* TODO */
+.todo-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--bd)}
+.todo-item:last-child{border-bottom:none;padding-bottom:0}
+.chk{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--bd2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;background:none}
+.chk.on{background:var(--g);border-color:var(--g);color:#fff;font-size:10px}
+.todo-txt{font-size:13px;color:var(--tx);flex:1}
+.todo-txt.done{text-decoration:line-through;color:var(--tx3)}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;flex-shrink:0}
+.t-r{background:#FAECE7;color:#D85A30}.t-g{background:#E1F5EE;color:#1D9E75}
+.t-a{background:#FAEEDA;color:#BA7517}.t-b{background:#EEF1FE;color:#4F6EF7}
+.t-p{background:#EEEDFE;color:#534AB7}
+
+/* INPUT */
+.add-row{display:flex;gap:7px;margin-top:8px}
+.add-row input{flex:1;padding:8px 11px;font-size:13px;border:0.5px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-family:inherit}
+.add-row button{padding:8px 14px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500}
+
+/* DEBT */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kcard{background:var(--card);border:0.5px solid var(--bd);border-radius:12px;padding:11px 13px}
+.kl{font-size:10px;color:var(--tx2);margin-bottom:4px}
+.kv{font-size:17px;font-weight:600}
+.ks{font-size:10px;margin-top:2px;color:var(--tx2)}
+.debt-item{padding:9px 0;border-bottom:0.5px solid var(--bd)}
+.debt-item:last-child{border-bottom:none;padding-bottom:0}
+.debt-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.debt-name{font-size:13px;font-weight:600;color:var(--tx)}
+.debt-amt{font-size:13px;font-weight:600;color:#D85A30}
+.debt-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);margin-bottom:5px}
+.pb{height:5px;border-radius:3px;background:var(--bg);overflow:hidden;border:0.5px solid var(--bd)}
+.pf{height:100%;border-radius:3px}
+
+/* STORE */
+.store-big{text-align:center;padding:10px 0 6px}
+.store-num{font-size:36px;font-weight:700;color:var(--tx)}
+.store-lbl{font-size:12px;color:var(--tx2);margin-bottom:10px}
+.goal-bar{height:8px;border-radius:4px;background:var(--bg);margin:0 0 5px;overflow:hidden;border:0.5px solid var(--bd)}
+.goal-fill{height:100%;border-radius:4px;background:var(--p);transition:width 0.4s}
+.goal-txt{display:flex;justify-content:space-between;font-size:11px;color:var(--tx2)}
+.qbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 8px}
+.qb{padding:9px 4px;background:var(--bg);border:0.5px solid var(--bd);border-radius:8px;font-size:12px;color:var(--tx);cursor:pointer;text-align:center;font-family:inherit}
+.qb:active{background:var(--p-l)}
+
+/* ROW */
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bd);font-size:13px}
+.row:last-child{border-bottom:none;padding-bottom:0}
+.sep{height:1px;background:var(--bd2);margin:3px 0}
+.trow{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--bd2);margin-top:2px}
+.tlbl{font-size:13px;font-weight:600;color:var(--tx)}
+.tamt{font-size:17px;font-weight:600}
+
+/* LEARN */
+.learn-item{display:flex;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--bd)}
+.learn-item:last-child{border-bottom:none;padding-bottom:0}
+.ldot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.ld-now{background:var(--p)}.ld-next{background:var(--bd2)}.ld-done{background:var(--g)}
+.learn-txt{font-size:13px;color:var(--tx);flex:1;line-height:1.4}
+.learn-sub{font-size:11px;color:var(--tx2);margin-top:2px}
+
+/* SPORT */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.scard{background:var(--card);border:0.5px solid var(--bd);border-radius:12px;padding:11px}
+.sico{font-size:20px;margin-bottom:4px}
+.sval{font-size:20px;font-weight:600;color:var(--tx)}
+.sunit{font-size:11px;color:var(--tx2)}
+.slbl{font-size:11px;color:var(--tx2);margin-top:1px}
+.sport-input-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--bd)}
+.sport-input-row:last-child{border-bottom:none}
+.sport-label{font-size:13px;color:var(--tx)}
+.wbtns{display:flex;gap:6px;align-items:center}
+.wbtn{padding:4px 10px;border-radius:6px;border:0.5px solid var(--bd);background:var(--bg);font-size:12px;cursor:pointer;color:var(--tx);font-family:inherit}
+.sleep-inp{width:52px;border:0.5px solid var(--bd);border-radius:6px;padding:4px 8px;background:var(--bg);font-size:13px;color:var(--tx);text-align:center;font-family:inherit}
+
+/* CAL */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}
+.cal-hdr{font-size:10px;color:var(--tx2);text-align:center;padding:4px 0;font-weight:500}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0.5px solid transparent}
+.cal-num{font-size:12px;font-weight:500}
+.cal-lbl{font-size:8px;margin-top:1px;text-align:center;line-height:1.2}
+.cd-empty{background:transparent}
+.cd-normal{background:var(--bg);border-color:var(--bd)}
+.cd-normal .cal-num{color:var(--tx2)}
+.cd-pay{background:#FAECE7;border-color:#F0997B}
+.cd-pay .cal-num{color:#D85A30;font-weight:700}
+.cd-pay .cal-lbl{color:#D85A30}
+.cd-today{background:var(--p);border-color:var(--p)}
+.cd-today .cal-num{color:#fff;font-weight:700}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--card);border-top:0.5px solid var(--bd);display:flex;padding:6px 0 max(10px,env(safe-area-inset-bottom));z-index:30}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;background:none;border:none;padding:4px 0;-webkit-tap-highlight-color:transparent}
+.ni-ico{font-size:20px;line-height:1}
+.ni-lbl{font-size:9px;color:var(--tx2)}
+.ni.on .ni-lbl{color:var(--p)}
+
+.red{color:#D85A30}.grn{color:#1D9E75}.amb{color:#BA7517}.blu{color:#4F6EF7}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="greet" id="greet">早安 👋</div>
+      <div class="datetxt" id="datetxt"></div>
+    </div>
+    <div class="ava">我</div>
+  </div>
+  <div class="alert">
+    <div class="al-l">
+      <div class="al-t" id="alert-title">本月還款壓力</div>
+      <div class="al-s" id="alert-sub">每月固定支出</div>
+    </div>
+    <div class="al-r">
+      <div class="al-v">$187,878</div>
+      <div class="al-l2">每月最低需求</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab on" data-t="cmd">今日指令</button>
+  <button class="tab" data-t="debt">負債</button>
+  <button class="tab" data-t="store">營收</button>
+  <button class="tab" data-t="learn">學習</button>
+  <button class="tab" data-t="sport">運動</button>
+  <button class="tab" data-t="cal">還款日</button>
+</div>
+
+<!-- 今日指令 -->
+<div class="sec on" id="tab-cmd">
+  <div class="cmd-hero">
+    <div class="cmd-date" id="cmd-date"></div>
+    <div class="cmd-title">今天你要完成這 5 件事</div>
+    <div class="cs"><div class="cs-n">1</div><div class="cs-b"><div class="cs-name">記錄昨日店面營收</div><div class="cs-desc">開店前 → 「營收」分頁輸入金額</div></div><button class="cs-chk" id="c1" onclick="tickCmd('c1',this)"></button></div>
+    <div class="cs"><div class="cs-n">2</div><div class="cs-b"><div class="cs-name">確認今日還款日是否到期</div><div class="cs-desc">查「還款日」分頁，今日有無扣款</div></div><button class="cs-chk" id="c2" onclick="tickCmd('c2',this)"></button></div>
+    <div class="cs"><div class="cs-n">3</div><div class="cs-b"><div class="cs-name">完成今日學習 20 分鐘</div><div class="cs-desc">查「學習」分頁，今日主題</div></div><button class="cs-chk" id="c3" onclick="tickCmd('c3',this)"></button></div>
+    <div class="cs"><div class="cs-n">4</div><div class="cs-b"><div class="cs-name">運動或健康打卡</div><div class="cs-desc">查「運動」分頁記錄</div></div><button class="cs-chk" id="c4" onclick="tickCmd('c4',this)"></button></div>
+    <div class="cs"><div class="cs-n">5</div><div class="cs-b"><div class="cs-name">凌晨收攤記錄今日實收</div><div class="cs-desc">02:00 後 → 「營收」分頁更新</div></div><button class="cs-chk" id="c5" onclick="tickCmd('c5',this)"></button></div>
+  </div>
+  <div class="stl">今日清單</div>
+  <div class="card" id="todo-list">
+    <div class="todo-item"><button class="chk" onclick="tgl(this)"></button><span class="todo-txt">確認內場排班效率</span><span class="tag t-b">店面</span></div>
+    <div class="todo-item"><button class="chk" onclick="tgl(this)"></button><span class="todo-txt">外場酒水銷售確認</span><span class="tag t-b">店面</span></div>
+    <div class="todo-item"><button class="chk" onclick="tgl(this)"></button><span class="todo-txt">每日覆盤 10 分鐘</span><span class="tag t-a">習慣</span></div>
+  </div>
+  <div class="add-row">
+    <input type="text" id="new-todo" placeholder="新增今日任務…">
+    <button onclick="addTodo()">新增</button>
+  </div>
+</div>
+
+<!-- 負債 -->
+<div class="sec" id="tab-debt">
+  <div class="g2">
+    <div class="kcard"><div class="kl">分期負債</div><div class="kv red">$1,468K</div><div class="ks">6 筆分期</div></div>
+    <div class="kcard"><div class="kl">信貸餘額</div><div class="kv red">$220K</div><div class="ks">凱基+中信+富邦</div></div>
+    <div class="kcard"><div class="kl">每月還款</div><div class="kv red">$92,878</div><div class="ks">分期固定</div></div>
+    <div class="kcard"><div class="kl">6個月後減少</div><div class="kv grn">$52,738</div><div class="ks">3筆同時還清</div></div>
+  </div>
+  <div class="stl">分期明細</div>
+  <div class="card">
+    <div class="debt-item"><div class="debt-top"><span class="debt-name">公司貸款</span><span class="debt-amt">$270,000</span></div><div class="debt-meta"><span>每月 $45,000 × 剩 6 期</span><span style="color:#1D9E75">6個月後還清 🎉</span></div><div class="pb"><div class="pf" style="width:82%;background:#1D9E75"></div></div></div>
+    <div class="debt-item"><div class="debt-top"><span class="debt-name">國泰 07號</span><span class="debt-amt">$50,817</span></div><div class="debt-meta"><span>每月 $4,988 × 剩 6 期</span><span style="color:#1D9E75">6個月後還清 🎉</span></div><div class="pb"><div class="pf" style="width:85%;background:#1D9E75"></div></div></div>
+    <div class="debt-item"><div class="debt-top"><span class="debt-name">中信B 27號</span><span class="debt-amt">$31,287</span></div><div class="debt-meta"><span>每月 $2,750 × 剩 7 期</span><span style="color:#1D9E75">7個月後還清 🎉</span></div><div class="pb"><div class="pf" style="width:78%;background:#1D9E75"></div></div></div>
+    <div class="debt-item"><div class="debt-top"><span class="debt-name">中信A 24號</span><span class="debt-amt">$54,894</span></div><div class="debt-meta"><span>每月 $3,340 × 剩 13 期</span><span>1年1個月</span></div><div class="pb"><div class="pf" style="width:55%;background:#BA7517"></div></div></div>
+    <div class="debt-item"><div class="debt-top"><span class="debt-name">青創 15號</span><span class="debt-amt">$400,000</span></div><div class="debt-meta"><span>每月 $17,000 × 剩 21 期</span><span>1年9個月</span></div><div class="pb"><div class="pf" style="width:30%;background:#D85A30"></div></div></div>
+    <div class="debt-item"><div class="debt-top"><span class="debt-name">車貸 14號</span><span class="debt-amt">$660,679</span></div><div class="debt-meta"><span>每月 $19,800 × 剩 35 期</span><span>2年11個月</span></div><div class="pb"><div class="pf" style="width:15%;background:#D85A30"></div></div></div>
+  </div>
+  <div class="stl">信貸（每月各 $10,000）</div>
+  <div class="card">
+    <div class="row"><span>凱基信貸</span><span class="red" style="font-weight:600">$30,000</span></div>
+    <div class="row"><span>中信信貸</span><span class="red" style="font-weight:600">$100,000</span></div>
+    <div class="row"><span>富邦信貸</span><span class="red" style="font-weight:600">$90,000</span></div>
+    <div class="trow"><span class="tlbl">信貸合計</span><span class="tamt red">$220,000</span></div>
+  </div>
+</div>
+
+<!-- 營收 -->
+<div class="sec" id="tab-store">
+  <div class="stl">今日店面營收</div>
+  <div class="card">
+    <div class="store-big">
+      <div class="store-num" id="s-val">$0</div>
+      <div class="store-lbl">今日實收</div>
+    </div>
+    <div class="goal-bar"><div class="goal-fill" id="g-fill" style="width:0%"></div></div>
+    <div class="goal-txt"><span>目標 $33,333</span><span id="g-pct">0%</span></div>
+    <div class="qbtns">
+      <div class="qb" onclick="addRev(5000)">+$5K</div>
+      <div class="qb" onclick="addRev(10000)">+$1萬</div>
+      <div class="qb" onclick="addRev(30000)">+$3萬</div>
+      <div class="qb" onclick="addRev(50000)">+$5萬</div>
+    </div>
+    <div class="add-row">
+      <input type="number" id="rev-inp" placeholder="自訂金額…">
+      <button onclick="addRevC()">記錄</button>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="kcard"><div class="kl">損益平衡月目標</div><div class="kv amb">$187,878</div><div class="ks">淨利需 18.8%+</div></div>
+    <div class="kcard"><div class="kl">每日均需</div><div class="kv blu">$33,333</div><div class="ks">100萬÷30天</div></div>
+  </div>
+  <div class="stl">今日紀錄</div>
+  <div class="card" id="week-log"><div class="row"><span style="color:var(--tx2);font-size:12px">尚無紀錄</span><span></span></div></div>
+</div>
+
+<!-- 學習 -->
+<div class="sec" id="tab-learn">
+  <div class="stl">學習計劃（照順序完成）</div>
+  <div class="card" id="learn-list">
+    <div class="learn-item"><div class="ldot ld-now"></div><div style="flex:1"><div class="learn-txt">財務管理：現金流 vs 損益表差異</div><div class="learn-sub">今日 · 20分鐘 · 財務</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button></div>
+    <div class="learn-item"><div class="ldot ld-now"></div><div style="flex:1"><div class="learn-txt">居酒屋定價策略：酒水毛利最大化</div><div class="learn-sub">今日 · 20分鐘 · 事業</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button></div>
+    <div class="learn-item"><div class="ldot ld-next"></div><div style="flex:1"><div class="learn-txt">負債雪崩法：還款順序與利息計算</div><div class="learn-sub">明日 · 20分鐘 · 財務</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button></div>
+    <div class="learn-item"><div class="ldot ld-next"></div><div style="flex:1"><div class="learn-txt">員工績效制度設計：獎金連結KPI</div><div class="learn-sub">明後日 · 25分鐘 · 管理</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button></div>
+    <div class="learn-item"><div class="ldot ld-next"></div><div style="flex:1"><div class="learn-txt">深夜餐飲客群經營：熟客回頭率提升</div><div class="learn-sub">本週 · 20分鐘 · 行銷</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button></div>
+    <div class="learn-item"><div class="ldot ld-next"></div><div style="flex:1"><div class="learn-txt">現金流危機處理：當月收不夠時怎麼辦</div><div class="learn-sub">本週 · 20分鐘 · 財務</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button></div>
+  </div>
+  <div class="add-row">
+    <input type="text" id="new-learn" placeholder="新增學習主題…">
+    <button onclick="addLearn()">新增</button>
+  </div>
+</div>
+
+<!-- 運動 -->
+<div class="sec" id="tab-sport">
+  <div class="sg">
+    <div class="scard"><div class="sico">🏃</div><div><span class="sval" id="sp-km">0</span><span class="sunit"> km</span></div><div class="slbl">本週跑步</div></div>
+    <div class="scard"><div class="sico">🔥</div><div><span class="sval" id="sp-cal">0</span><span class="sunit"> kcal</span></div><div class="slbl">本週消耗</div></div>
+    <div class="scard"><div class="sico">💧</div><div><span class="sval" id="sp-water">0</span><span class="sunit"> ml</span></div><div class="slbl">今日飲水</div></div>
+    <div class="scard"><div class="sico">😴</div><div><span class="sval" id="sp-sleep">-</span><span class="sunit"> hr</span></div><div class="slbl">昨晚睡眠</div></div>
+  </div>
+  <div class="card">
+    <div class="sport-input-row"><span class="sport-label">飲水紀錄</span><div class="wbtns"><button class="wbtn" onclick="addW(250)">+250ml</button><button class="wbtn" onclick="addW(500)">+500ml</button><span style="font-size:12px;color:var(--tx2);min-width:60px;text-align:right" id="w-disp">0 ml</span></div></div>
+    <div class="sport-input-row"><span class="sport-label">睡眠時數</span><input type="number" class="sleep-inp" id="sleep-inp" placeholder="小時" min="1" max="12" onchange="setSleep(this.value)"></div>
+  </div>
+  <div class="add-row">
+    <input type="text" id="sp-log" placeholder="記錄今日運動（如：跑步30分鐘）…">
+    <button onclick="logSport()">記錄</button>
+  </div>
+  <div class="card" id="sport-log-list" style="display:none"></div>
+</div>
+
+<!-- 還款日 -->
+<div class="sec" id="tab-cal">
+  <div class="stl">本月還款日曆</div>
+  <div class="card">
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+  <div class="stl">還款明細</div>
+  <div class="card">
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#FAECE7;color:#D85A30;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">07號</span>國泰</span><span class="red" style="font-weight:600">$4,988</span></div>
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#FAECE7;color:#D85A30;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">14號</span>車貸</span><span class="red" style="font-weight:600">$19,800</span></div>
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#FAECE7;color:#D85A30;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">15號</span>青創</span><span class="red" style="font-weight:600">$17,000</span></div>
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#FAEEDA;color:#BA7517;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">24號</span>中信A</span><span class="red" style="font-weight:600">$3,340</span></div>
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#FAEEDA;color:#BA7517;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">27號</span>中信B</span><span class="red" style="font-weight:600">$2,750</span></div>
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#EEEDFE;color:#534AB7;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">月底</span>公司貸款</span><span class="red" style="font-weight:600">$45,000</span></div>
+    <div class="row"><span style="display:flex;align-items:center;gap:6px"><span style="background:#E1F5EE;color:#1D9E75;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600">月底</span>信用卡×3</span><span class="red" style="font-weight:600">$30,000</span></div>
+    <div class="trow"><span class="tlbl">每月合計</span><span class="tamt red">$122,878</span></div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav" id="nav">
+  <button class="ni on" data-t="cmd"><div class="ni-ico">📋</div><div class="ni-lbl">今日</div></button>
+  <button class="ni" data-t="debt"><div class="ni-ico">💰</div><div class="ni-lbl">負債</div></button>
+  <button class="ni" data-t="store"><div class="ni-ico">🏪</div><div class="ni-lbl">營收</div></button>
+  <button class="ni" data-t="learn"><div class="ni-ico">📚</div><div class="ni-lbl">學習</div></button>
+  <button class="ni" data-t="sport"><div class="ni-ico">🏃</div><div class="ni-lbl">運動</div></button>
+  <button class="ni" data-t="cal"><div class="ni-ico">📅</div><div class="ni-lbl">還款日</div></button>
+</div>
+
+<script>
+// Date & greeting
+const now=new Date();
+const H=now.getHours();
+const days=['日','一','二','三','四','五','六'];
+document.getElementById('greet').textContent=H<5?'深夜了 🌙':H<12?'早安 👋':H<17?'午安 👋':'晚安 👋';
+const ds=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} 週${days[now.getDay()]}`;
+document.getElementById('datetxt').textContent=ds;
+document.getElementById('cmd-date').textContent=ds;
+
+// Pay day alert
+const payMap={7:'國泰 $4,988',14:'車貸 $19,800',15:'青創 $17,000',24:'中信A $3,340',27:'中信B $2,750'};
+const d=now.getDate();
+const todayPay=payMap[d];
+const soonPay=Object.entries(payMap).filter(([k])=>+k>d&&+k-d<=3);
+if(todayPay){
+  document.getElementById('alert-title').textContent='⚠️ 今日扣款：'+todayPay;
+  document.getElementById('alert-sub').textContent='請確認帳戶餘額！';
+}else if(soonPay.length){
+  document.getElementById('alert-title').textContent='📅 '+soonPay.map(([k,v])=>k+'號 '+v.split(' ')[0]).join('、')+' 即將扣款';
+  document.getElementById('alert-sub').textContent='3天內請確認餘額';
+}
+
+// Tab switch
+function sw(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+  document.querySelectorAll('.sec').forEach(x=>x.classList.toggle('on',x.id==='tab-'+t));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)sw(b.dataset.t)});
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.ni');if(b)sw(b.dataset.t)});
+
+// Cmd tick
+function tickCmd(id,el){el.classList.toggle('on');el.textContent=el.classList.contains('on')?'✓':'';}
+
+// Todo
+function tgl(el){
+  el.classList.toggle('on');
+  el.textContent=el.classList.contains('on')?'✓':'';
+  const nxt=el.nextElementSibling;
+  if(nxt&&nxt.classList.contains('todo-txt'))nxt.classList.toggle('done');
+}
+function addTodo(){
+  const i=document.getElementById('new-todo');
+  if(!i.value.trim())return;
+  const d=document.createElement('div');d.className='todo-item';
+  d.innerHTML=`<button class="chk" onclick="tgl(this)"></button><span class="todo-txt">${i.value.trim()}</span><span class="tag t-a">自訂</span>`;
+  document.getElementById('todo-list').appendChild(d);
+  i.value='';
+}
+
+// Store
+let rev=0;
+function updStore(){
+  document.getElementById('s-val').textContent='$'+rev.toLocaleString();
+  const p=Math.min(100,Math.round(rev/33333*100));
+  document.getElementById('g-fill').style.width=p+'%';
+  document.getElementById('g-pct').textContent=p+'%';
+}
+function addRev(n){
+  rev+=n;updStore();
+  const wl=document.getElementById('week-log');
+  if(wl.querySelector('[style*="color:var(--tx2)"]'))wl.innerHTML='';
+  const row=document.createElement('div');row.className='row';
+  const t=new Date();
+  row.innerHTML=`<span>${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')} 新增</span><span style="color:#1D9E75;font-weight:600">+$${n.toLocaleString()}</span>`;
+  wl.appendChild(row);
+}
+function addRevC(){const v=parseInt(document.getElementById('rev-inp').value)||0;if(!v)return;addRev(v);document.getElementById('rev-inp').value='';}
+
+// Learn
+function addLearn(){
+  const i=document.getElementById('new-learn');
+  if(!i.value.trim())return;
+  const d=document.createElement('div');d.className='learn-item';
+  d.innerHTML=`<div class="ldot ld-next"></div><div style="flex:1"><div class="learn-txt">${i.value.trim()}</div><div class="learn-sub">自訂</div></div><button class="chk" onclick="tgl(this)" style="flex-shrink:0"></button>`;
+  document.getElementById('learn-list').appendChild(d);
+  i.value='';
+}
+
+// Sport
+let water=0;
+function addW(n){water+=n;document.getElementById('sp-water').textContent=water;document.getElementById('w-disp').textContent=water+' ml';}
+function setSleep(v){if(v)document.getElementById('sp-sleep').textContent=v;}
+function logSport(){
+  const i=document.getElementById('sp-log');
+  if(!i.value.trim())return;
+  const list=document.getElementById('sport-log-list');
+  list.style.display='block';
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML=`<span style="font-size:13px;color:var(--tx)">${i.value.trim()}</span><span style="font-size:11px;color:var(--tx2)">${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,'0')}</span>`;
+  list.appendChild(row);
+  i.value='';
+}
+
+// Calendar
+(function(){
+  const yr=now.getFullYear(),mo=now.getMonth();
+  const first=new Date(yr,mo,1).getDay();
+  const total=new Date(yr,mo+1,0).getDate();
+  const pm={7:'國泰',14:'車貸',15:'青創',24:'中信',27:'中信B'};
+  const grid=document.getElementById('cal-grid');
+  let html='';
+  ['日','一','二','三','四','五','六'].forEach(x=>{html+=`<div class="cal-hdr">${x}</div>`;});
+  for(let i=0;i<first;i++)html+='<div class="cal-day cd-empty"></div>';
+  for(let i=1;i<=total;i++){
+    if(i===d)html+=`<div class="cal-day cd-today"><div class="cal-num">${i}</div></div>`;
+    else if(pm[i])html+=`<div class="cal-day cd-pay"><div class="cal-num">${i}</div><div class="cal-lbl">${pm[i]}</div></div>`;
+    else html+=`<div class="cal-day cd-normal"><div class="cal-num">${i}</div></div>`;
+  }
+  grid.innerHTML=html;
+})();
+</script>
+</body>
+</html>
